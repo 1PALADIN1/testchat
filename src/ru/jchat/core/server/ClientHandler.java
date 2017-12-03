@@ -22,7 +22,7 @@ public class ClientHandler {
                         while (true) {
                             String msg = in.readUTF();
                             System.out.println("От клиента: " + msg);
-                            out.writeUTF("evho: " + msg);
+                            out.writeUTF("echo: " + msg);
                             if (msg.equals("/end")) break;
                         }
                     } catch (IOException e) {
