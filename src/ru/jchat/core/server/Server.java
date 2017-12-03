@@ -14,7 +14,7 @@ public class Server {
 
             while (true) {
                 Socket socket = serverSocket.accept();
-                System.out.println("Клиент подключен");
+                System.out.println("Клиент подключен: " + socket.getInetAddress() + ":" + socket.getPort() + "(" + socket.getLocalPort() + ")");
                 clients.add(new ClientHandler(this, socket));
             }
         } catch (IOException e) {

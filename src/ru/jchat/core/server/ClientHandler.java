@@ -24,9 +24,9 @@ public class ClientHandler {
                         while (true) {
                             String msg = in.readUTF();
                             System.out.println("От клиента: " + msg);
-                            server.broadcastMsg(msg);
-                            //sendMsg("echo: " + msg);
                             if (msg.equals("/end")) break;
+                            server.broadcastMsg("client: " + msg);
+                            //sendMsg("echo: " + msg);
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
