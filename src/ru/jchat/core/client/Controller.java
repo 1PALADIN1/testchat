@@ -4,6 +4,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
@@ -24,6 +25,10 @@ public class Controller implements Initializable {
     HBox authPanel;
     @FXML
     HBox msgPanel;
+    @FXML
+    TextField loginField;
+    @FXML
+    PasswordField passField;
 
     private Socket socket;
     private DataOutputStream out;
@@ -61,6 +66,10 @@ public class Controller implements Initializable {
                     try {
                         while (true) {
                             String s = in.readUTF();
+                            if (s.equals("/authok")) {
+                                setAuthorized(true);
+                                continue;
+                            }
                             textArea.appendText(s + "\n");
                         }
                     } catch (IOException e) {
@@ -93,7 +102,13 @@ public class Controller implements Initializable {
     }
 
     public void sendAuthMsg() {
-
+        try {
+            out.writeUTF("/auth " + loginField.getText() + " " + passField.getText());
+            loginField.clear();
+            passField.clear();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void showAlert(String msg) {
