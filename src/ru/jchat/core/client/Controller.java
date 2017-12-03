@@ -1,7 +1,9 @@
 package ru.jchat.core.client;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Alert;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
@@ -66,5 +68,15 @@ public class Controller implements Initializable {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void showAlert(String msg) {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Возникли проблемы");
+            alert.setHeaderText(null);
+            alert.setContentText(msg);
+            alert.showAndWait();
+        });
     }
 }
