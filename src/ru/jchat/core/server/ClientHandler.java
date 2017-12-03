@@ -23,6 +23,18 @@ public class ClientHandler {
                     try {
                         while (true) {
                             String msg = in.readUTF();
+                            if (msg.startsWith("/auth ")) {
+                                String[] data = msg.split(" ");
+                                if (data[1].equals("login") && data[2].equals("password")) {
+                                    sendMsg("/authok");
+                                    System.out.println("Клиент авторизовался");
+                                    continue;
+                                }
+                                else {
+                                    sendMsg("Неверный логин и/или пароль");
+                                    continue;
+                                }
+                            }
                             System.out.println("От клиента: " + msg);
                             if (msg.equals("/end")) break;
                             server.broadcastMsg("client: " + msg);
