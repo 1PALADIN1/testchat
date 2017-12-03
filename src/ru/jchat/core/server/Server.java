@@ -15,10 +15,16 @@ public class Server {
             while (true) {
                 Socket socket = serverSocket.accept();
                 System.out.println("Клиент подключен");
-                clients.add(new ClientHandler(socket));
+                clients.add(new ClientHandler(this, socket));
             }
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void broadcastMsg(String msg) {
+        for (ClientHandler o: clients) {
+            o.sendMsg(msg);
         }
     }
 }

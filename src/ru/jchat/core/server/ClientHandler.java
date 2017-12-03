@@ -6,12 +6,14 @@ import java.io.IOException;
 import java.net.Socket;
 
 public class ClientHandler {
+    private Server server;
     private Socket socket;
     private DataInputStream in;
     private DataOutputStream out;
 
-    public ClientHandler(Socket socket) {
+    public ClientHandler(Server server, Socket socket) {
         try {
+            this.server = server;
             this.socket = socket;
             this.in = new DataInputStream(socket.getInputStream());
             this.out = new DataOutputStream(socket.getOutputStream());
@@ -22,7 +24,8 @@ public class ClientHandler {
                         while (true) {
                             String msg = in.readUTF();
                             System.out.println("От клиента: " + msg);
-                            sendMsg("echo: " + msg);
+                            server.broadcastMsg(msg);
+                            //sendMsg("echo: " + msg);
                             if (msg.equals("/end")) break;
                         }
                     } catch (IOException e) {
