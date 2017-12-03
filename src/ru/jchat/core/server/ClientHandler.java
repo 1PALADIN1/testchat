@@ -17,37 +17,36 @@ public class ClientHandler {
             this.socket = socket;
             this.in = new DataInputStream(socket.getInputStream());
             this.out = new DataOutputStream(socket.getOutputStream());
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        while (true) {
-                            String msg = in.readUTF();
-                            if (msg.startsWith("/auth ")) {
-                                String[] data = msg.split(" ");
-                                if (data[1].equals("login") && data[2].equals("password")) {
-                                    sendMsg("/authok");
-                                    System.out.println("Клиент авторизовался");
-                                    continue;
-                                }
-                                else {
-                                    sendMsg("Неверный логин и/или пароль");
-                                    continue;
-                                }
+            new Thread(() -> {
+                try {
+                    while (true) {
+                        String msg = in.readUTF();
+                        if (msg.startsWith("/auth ")) {
+                            String[] data = msg.split(" ");
+                            if (data[1].equals("login") && data[2].equals("password")) {
+                                sendMsg("/authok");
+                                System.out.println("Клиент авторизовался");
+                                server.subscribe(this);
+                                continue;
                             }
-                            System.out.println("От клиента: " + msg);
-                            if (msg.equals("/end")) break;
-                            server.broadcastMsg("client: " + msg);
-                            //sendMsg("echo: " + msg);
+                            else {
+                                sendMsg("Неверный логин и/или пароль");
+                                continue;
+                            }
                         }
+                        System.out.println("От клиента: " + msg);
+                        if (msg.equals("/end")) break;
+                        server.broadcastMsg("client: " + msg);
+                        //sendMsg("echo: " + msg);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    server.unsubscribe(this);
+                    try {
+                        socket.close();
                     } catch (IOException e) {
                         e.printStackTrace();
-                    } finally {
-                        try {
-                            socket.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
                     }
                 }
             }).start();
