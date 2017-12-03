@@ -22,7 +22,7 @@ public class ClientHandler {
                         while (true) {
                             String msg = in.readUTF();
                             System.out.println("От клиента: " + msg);
-                            out.writeUTF("echo: " + msg);
+                            sendMsg("echo: " + msg);
                             if (msg.equals("/end")) break;
                         }
                     } catch (IOException e) {
@@ -36,6 +36,14 @@ public class ClientHandler {
                     }
                 }
             }).start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendMsg(String msg) {
+        try {
+            out.writeUTF(msg);
         } catch (IOException e) {
             e.printStackTrace();
         }
