@@ -55,11 +55,14 @@ public class Controller implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        setAuthorized(false);
+    }
+
+    public void connect() {
         try {
             socket = new Socket(SERVER_IP, SERVER_PORT);
             in = new DataInputStream(socket.getInputStream());
             out = new DataOutputStream(socket.getOutputStream());
-            setAuthorized(false);
             Thread t = new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -73,8 +76,9 @@ public class Controller implements Initializable {
                             textArea.appendText(s + "\n");
                         }
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        showAlert("Сервер перестал отвечать");
                     } finally {
+                        setAuthorized(false);
                         try {
                             socket.close();
                         } catch (IOException e) {
@@ -87,7 +91,7 @@ public class Controller implements Initializable {
             t.setDaemon(true);
             t.start();
         } catch (IOException e) {
-            e.printStackTrace();
+            showAlert("Не удалось подключиться к серверу. Проверьте сетевое соединение.");
         }
     }
 
@@ -102,6 +106,10 @@ public class Controller implements Initializable {
     }
 
     public void sendAuthMsg() {
+        if (socket == null || socket.isClosed()) {
+            connect();
+        }
+
         try {
             out.writeUTF("/auth " + loginField.getText() + " " + passField.getText());
             loginField.clear();

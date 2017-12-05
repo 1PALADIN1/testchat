@@ -36,12 +36,11 @@ public class ClientHandler {
                                 } else {
                                     sendMsg("Учётная запись уже занята");
                                 }
-                                continue;
                             }
                             else {
                                 sendMsg("Неверный логин и/или пароль");
-                                continue;
                             }
+                            continue;
                         }
                         System.out.println(nick + ": " + msg);
                         if (msg.equals("/end")) break;
@@ -51,6 +50,7 @@ public class ClientHandler {
                 } catch (IOException e) {
                     e.printStackTrace();
                 } finally {
+                    nick = null;
                     server.unsubscribe(this);
                     try {
                         socket.close();
