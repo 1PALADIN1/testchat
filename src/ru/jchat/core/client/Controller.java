@@ -71,7 +71,6 @@ public class Controller implements Initializable {
                             String s = in.readUTF();
                             if (s.equals("/authok")) {
                                 setAuthorized(true);
-                                msgField.requestFocus();
                                 continue;
                             }
                             textArea.appendText(s + "\n");
@@ -119,7 +118,7 @@ public class Controller implements Initializable {
             passField.clear();
         } catch (IOException e) {
             //ДЗ: ошибка аутентификации
-            showAlert("Ошибка аутентификации");
+            showAlert("Ошибка аутентификации. Проверьте соединение.");
             //e.printStackTrace();
         }
     }
