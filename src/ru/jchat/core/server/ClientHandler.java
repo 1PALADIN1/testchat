@@ -28,10 +28,14 @@ public class ClientHandler {
                             //получаем логин и пароль из базы
                             String newNick = server.getAuthService().getNickByLoginAndPass(data[1], data[2]);
                             if (newNick != null) {
-                                nick = newNick;
-                                sendMsg("/authok");
-                                System.out.println("Клиент " + newNick + " авторизовался");
-                                server.subscribe(this);
+                                if (!server.isNickBusy(newNick)) {
+                                    nick = newNick;
+                                    sendMsg("/authok");
+                                    System.out.println("Клиент " + newNick + " авторизовался");
+                                    server.subscribe(this);
+                                } else {
+                                    sendMsg("Учётная запись уже занята");
+                                }
                                 continue;
                             }
                             else {

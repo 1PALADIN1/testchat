@@ -47,4 +47,11 @@ public class Server {
     public AuthService getAuthService() {
         return authService;
     }
+
+    public boolean isNickBusy(String nick) {
+        for (ClientHandler o: clients) {
+            if (o.getNick().equals(nick)) return true;
+        }
+        return false;
+    }
 }
