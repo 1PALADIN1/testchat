@@ -8,8 +8,9 @@ import java.util.Vector;
 
 public class Server {
     private Vector<ClientHandler> clients;
+    private AuthService authService;
+
     public Server() {
-        AuthService authService = null;
         try (ServerSocket serverSocket = new ServerSocket(8189)) {
             clients = new Vector<>();
             authService = new AuthService();
@@ -41,5 +42,9 @@ public class Server {
         for (ClientHandler o: clients) {
             o.sendMsg(msg);
         }
+    }
+
+    public AuthService getAuthService() {
+        return authService;
     }
 }
