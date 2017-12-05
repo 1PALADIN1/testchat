@@ -10,6 +10,7 @@ public class ClientHandler {
     private Socket socket;
     private DataInputStream in;
     private DataOutputStream out;
+    private String nick;
 
     public ClientHandler(Server srv, Socket sock) {
         try {
@@ -23,9 +24,13 @@ public class ClientHandler {
                         String msg = in.readUTF();
                         if (msg.startsWith("/auth ")) {
                             String[] data = msg.split(" ");
-                            if (data[1].equals("login") && data[2].equals("password")) {
+
+                            //получаем логин и пароль из базы
+                            String newNick = server.getAuthService().getNickByLoginAndPass(data[1], data[2]);
+                            if (newNick != null) {
+                                nick = newNick;
                                 sendMsg("/authok");
-                                System.out.println("Клиент авторизовался");
+                                System.out.println("Клиент " + newNick + " авторизовался");
                                 server.subscribe(this);
                                 continue;
                             }
@@ -34,9 +39,9 @@ public class ClientHandler {
                                 continue;
                             }
                         }
-                        System.out.println("От клиента: " + msg);
+                        System.out.println(nick + ": " + msg);
                         if (msg.equals("/end")) break;
-                        server.broadcastMsg("client: " + msg);
+                        server.broadcastMsg(nick + ": " + msg);
                         //sendMsg("echo: " + msg);
                     }
                 } catch (IOException e) {
@@ -61,5 +66,9 @@ public class ClientHandler {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public String getNick() {
+        return nick;
     }
 }
