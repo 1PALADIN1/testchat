@@ -3,15 +3,18 @@ package ru.jchat.core.server;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.SQLException;
 import java.util.Vector;
 
 public class Server {
     private Vector<ClientHandler> clients;
     public Server() {
+        AuthService authService = null;
         try (ServerSocket serverSocket = new ServerSocket(8189)) {
             clients = new Vector<>();
+            authService = new AuthService();
+            authService.connect();
             System.out.println("Сервер запущен. Ожидаю клиентов...");
-
             while (true) {
                 Socket socket = serverSocket.accept();
                 System.out.println("Клиент подключен: " + socket.getInetAddress() + ":" + socket.getPort() + "(" + socket.getLocalPort() + ")");
@@ -19,6 +22,10 @@ public class Server {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (SQLException | ClassNotFoundException e) {
+            System.out.println("Не удалось запустить сервис авторизации");
+        } finally {
+            if (authService != null) authService.disconnect();
         }
     }
 

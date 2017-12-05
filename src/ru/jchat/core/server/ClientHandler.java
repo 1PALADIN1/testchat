@@ -11,10 +11,10 @@ public class ClientHandler {
     private DataInputStream in;
     private DataOutputStream out;
 
-    public ClientHandler(Server server, Socket socket) {
+    public ClientHandler(Server srv, Socket sock) {
         try {
-            this.server = server;
-            this.socket = socket;
+            this.server = srv;
+            this.socket = sock;
             this.in = new DataInputStream(socket.getInputStream());
             this.out = new DataOutputStream(socket.getOutputStream());
             new Thread(() -> {
