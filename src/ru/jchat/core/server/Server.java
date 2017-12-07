@@ -54,4 +54,15 @@ public class Server {
         }
         return false;
     }
+
+    public void sendPrivateMsg(ClientHandler from, String nickTo, String msg) {
+        for (ClientHandler o: clients) {
+            if (o.getNick().equals(nickTo)) {
+                o.sendMsg("Личное сообщение от " + from.getNick() + ": " + msg);
+                from.sendMsg("Личное сообщение отправлено " + nickTo);
+                return;
+            }
+            from.sendMsg(nickTo + " не найден");
+        }
+    }
 }

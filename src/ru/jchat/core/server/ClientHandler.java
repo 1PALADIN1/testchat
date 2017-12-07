@@ -23,7 +23,7 @@ public class ClientHandler {
                     while (true) {
                         String msg = in.readUTF();
                         if (msg.startsWith("/auth ")) {
-                            String[] data = msg.split(" ");
+                            String[] data = msg.split("\\s");
 
                             //получаем логин и пароль из базы
                             String newNick = server.getAuthService().getNickByLoginAndPass(data[1], data[2]);
@@ -45,6 +45,10 @@ public class ClientHandler {
                         System.out.println(nick + ": " + msg);
                         //служебные команды
                         if (msg.startsWith("/")) {
+                            if (msg.startsWith("/w ")) {
+                                String[] data = msg.split("\\s", 3);
+                                server.sendPrivateMsg(this, data[1], data[2]);
+                            }
                             if (msg.equals("/end")) break;
                         } else {
                             server.broadcastMsg(nick + ": " + msg);
