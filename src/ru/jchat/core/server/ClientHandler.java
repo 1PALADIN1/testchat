@@ -6,38 +6,73 @@ import java.io.IOException;
 import java.net.Socket;
 
 public class ClientHandler {
+    private Server server;
     private Socket socket;
     private DataInputStream in;
     private DataOutputStream out;
+    private String nick;
 
-    public ClientHandler(Socket socket) {
+    public ClientHandler(Server srv, Socket sock) {
         try {
-            this.socket = socket;
+            this.server = srv;
+            this.socket = sock;
             this.in = new DataInputStream(socket.getInputStream());
             this.out = new DataOutputStream(socket.getOutputStream());
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        while (true) {
-                            String msg = in.readUTF();
-                            System.out.println("От клиента: " + msg);
-                            out.writeUTF("evho: " + msg);
-                            if (msg.equals("/end")) break;
+            new Thread(() -> {
+                try {
+                    while (true) {
+                        String msg = in.readUTF();
+                        if (msg.startsWith("/auth ")) {
+                            String[] data = msg.split(" ");
+
+                            //получаем логин и пароль из базы
+                            String newNick = server.getAuthService().getNickByLoginAndPass(data[1], data[2]);
+                            if (newNick != null) {
+                                if (!server.isNickBusy(newNick)) {
+                                    nick = newNick;
+                                    sendMsg("/authok");
+                                    System.out.println("Клиент " + newNick + " авторизовался");
+                                    server.subscribe(this);
+                                } else {
+                                    sendMsg("Учётная запись уже занята");
+                                }
+                            }
+                            else {
+                                sendMsg("Неверный логин и/или пароль");
+                            }
+                            continue;
                         }
+                        System.out.println(nick + ": " + msg);
+                        if (msg.equals("/end")) break;
+                        server.broadcastMsg(nick + ": " + msg);
+                        //sendMsg("echo: " + msg);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    nick = null;
+                    server.unsubscribe(this);
+                    try {
+                        socket.close();
                     } catch (IOException e) {
                         e.printStackTrace();
-                    } finally {
-                        try {
-                            socket.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
                     }
                 }
             }).start();
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void sendMsg(String msg) {
+        try {
+            out.writeUTF(msg);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String getNick() {
+        return nick;
     }
 }
