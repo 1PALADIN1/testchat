@@ -43,9 +43,12 @@ public class ClientHandler {
                             continue;
                         }
                         System.out.println(nick + ": " + msg);
-                        if (msg.equals("/end")) break;
-                        server.broadcastMsg(nick + ": " + msg);
-                        //sendMsg("echo: " + msg);
+                        //служебные команды
+                        if (msg.startsWith("/")) {
+                            if (msg.equals("/end")) break;
+                        } else {
+                            server.broadcastMsg(nick + ": " + msg);
+                        }
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
