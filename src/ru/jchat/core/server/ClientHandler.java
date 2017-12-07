@@ -26,19 +26,22 @@ public class ClientHandler {
                             String[] data = msg.split("\\s");
 
                             //получаем логин и пароль из базы
-                            String newNick = server.getAuthService().getNickByLoginAndPass(data[1], data[2]);
-                            if (newNick != null) {
-                                if (!server.isNickBusy(newNick)) {
-                                    nick = newNick;
-                                    sendMsg("/authok");
-                                    System.out.println("Клиент " + newNick + " авторизовался");
-                                    server.subscribe(this);
+                            if (data.length == 3) {
+                                String newNick = server.getAuthService().getNickByLoginAndPass(data[1], data[2]);
+                                if (newNick != null) {
+                                    if (!server.isNickBusy(newNick)) {
+                                        nick = newNick;
+                                        sendMsg("/authok");
+                                        System.out.println("Клиент " + newNick + " авторизовался");
+                                        server.subscribe(this);
+                                    } else {
+                                        sendMsg("Учётная запись уже занята");
+                                    }
                                 } else {
-                                    sendMsg("Учётная запись уже занята");
+                                    sendMsg("Неверный логин и/или пароль");
                                 }
-                            }
-                            else {
-                                sendMsg("Неверный логин и/или пароль");
+                            } else {
+                                sendMsg("Логин и пароль обязательны для заполнения");
                             }
                             continue;
                         }
