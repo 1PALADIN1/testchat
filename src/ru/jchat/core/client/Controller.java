@@ -108,6 +108,11 @@ public class Controller implements Initializable {
     }
 
     public void sendAuthMsg() {
+        if (loginField.getText().isEmpty() || passField.getText().isEmpty()) {
+            showAlert("Поля логин и пароль должны быть заполнены");
+            return;
+        }
+
         if (socket == null || socket.isClosed()) {
             connect();
         }
