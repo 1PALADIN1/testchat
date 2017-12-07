@@ -1,12 +1,11 @@
 package ru.jchat.core.client;
 
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Alert;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 
 import java.io.DataInputStream;
@@ -29,11 +28,14 @@ public class Controller implements Initializable {
     TextField loginField;
     @FXML
     PasswordField passField;
+    @FXML
+    ListView<String> clientsListView;
 
     private Socket socket;
     private DataOutputStream out;
     private DataInputStream in;
     private boolean authorized = false;
+    private ObservableList<String> clientList; //
 
     final String SERVER_IP = "localhost";
     final int SERVER_PORT = 8189;
@@ -43,11 +45,15 @@ public class Controller implements Initializable {
         if (authorized) {
             msgPanel.setVisible(true);
             msgPanel.setManaged(true);
+            clientsListView.setVisible(true);
+            clientsListView.setManaged(true);
             authPanel.setVisible(false);
             authPanel.setManaged(false);
         } else {
             msgPanel.setVisible(false);
             msgPanel.setManaged(false);
+            clientsListView.setVisible(false);
+            clientsListView.setManaged(false);
             authPanel.setVisible(true);
             authPanel.setManaged(true);
         }
@@ -63,6 +69,8 @@ public class Controller implements Initializable {
             socket = new Socket(SERVER_IP, SERVER_PORT);
             in = new DataInputStream(socket.getInputStream());
             out = new DataOutputStream(socket.getOutputStream());
+            clientList = FXCollections.observableArrayList();
+            clientsListView.setItems(clientList);
             Thread t = new Thread(() -> {
                 try {
                     while (true) {
@@ -70,6 +78,12 @@ public class Controller implements Initializable {
                         if (s.equals("/authok")) {
                             setAuthorized(true);
                             continue;
+                        }
+                        //для служебных сообщений
+                        if (s.startsWith("/")) {
+                            if (s.startsWith("/clientslist ")) {
+
+                            }
                         }
                         textArea.appendText(s + "\n");
                     }
