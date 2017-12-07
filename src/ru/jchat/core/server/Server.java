@@ -30,12 +30,16 @@ public class Server {
         }
     }
 
+    //добавляем клиента в список онлайн
     public void subscribe(ClientHandler clientHandler) {
         clients.add(clientHandler);
+        broadcastClientsList();
     }
 
+    //удаляем клиента из списка онлайн
     public void unsubscribe(ClientHandler clientHandler) {
         clients.remove(clientHandler);
+        broadcastClientsList();
     }
 
     public void broadcastMsg(String msg) {
@@ -55,6 +59,7 @@ public class Server {
         return false;
     }
 
+    //отправка личного сообщения
     public void sendPrivateMsg(ClientHandler from, String nickTo, String msg) {
         for (ClientHandler o: clients) {
             if (o.getNick().equals(nickTo)) {
@@ -63,6 +68,20 @@ public class Server {
                 return;
             }
             from.sendMsg(nickTo + " не найден");
+        }
+    }
+
+    //рассылка списка клиентов в чате
+    public void broadcastClientsList() {
+        StringBuilder sb = new StringBuilder("/clientslist ");
+        for (ClientHandler o: clients) {
+            sb.append(o.getNick() + " ");
+        }
+
+        // /clientslist nick1 nick2 nick3
+        String out = sb.toString();
+        for (ClientHandler o: clients) {
+            o.sendMsg(out);
         }
     }
 }
