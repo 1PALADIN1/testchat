@@ -101,7 +101,9 @@ public class Controller implements Initializable {
             msgField.clear();
             msgField.requestFocus();
         } catch (IOException e) {
-            e.printStackTrace();
+            //ДЗ: если не получается отправить сообщение
+            showAlert("Не удалось отправить сообщение. Проверьте соодинение.");
+            //e.printStackTrace();
         }
     }
 
@@ -115,7 +117,9 @@ public class Controller implements Initializable {
             loginField.clear();
             passField.clear();
         } catch (IOException e) {
-            e.printStackTrace();
+            //ДЗ: ошибка аутентификации
+            showAlert("Ошибка аутентификации. Проверьте соединение.");
+            //e.printStackTrace();
         }
     }
 
