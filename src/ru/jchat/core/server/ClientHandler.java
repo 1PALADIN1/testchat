@@ -40,8 +40,6 @@ public class ClientHandler {
                                 } else {
                                     sendMsg("Неверный логин и/или пароль");
                                 }
-                            } else {
-                                sendMsg("Логин и пароль обязательны для заполнения");
                             }
                             continue;
                         }
