@@ -63,27 +63,24 @@ public class Controller implements Initializable {
             socket = new Socket(SERVER_IP, SERVER_PORT);
             in = new DataInputStream(socket.getInputStream());
             out = new DataOutputStream(socket.getOutputStream());
-            Thread t = new Thread(new Runnable() {
-                @Override
-                public void run() {
+            Thread t = new Thread(() -> {
+                try {
+                    while (true) {
+                        String s = in.readUTF();
+                        if (s.equals("/authok")) {
+                            setAuthorized(true);
+                            continue;
+                        }
+                        textArea.appendText(s + "\n");
+                    }
+                } catch (IOException e) {
+                    showAlert("Сервер перестал отвечать");
+                } finally {
+                    setAuthorized(false);
                     try {
-                        while (true) {
-                            String s = in.readUTF();
-                            if (s.equals("/authok")) {
-                                setAuthorized(true);
-                                continue;
-                            }
-                            textArea.appendText(s + "\n");
-                        }
+                        socket.close();
                     } catch (IOException e) {
-                        showAlert("Сервер перестал отвечать");
-                    } finally {
-                        setAuthorized(false);
-                        try {
-                            socket.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                        e.printStackTrace();
                     }
                 }
             });
