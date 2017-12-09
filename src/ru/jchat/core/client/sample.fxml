@@ -7,7 +7,7 @@
 <?import javafx.scene.control.ListView?>
 
 <HBox fx:controller="ru.jchat.core.client.Controller"
-      xmlns:fx="http://javafx.com/fxml" alignment="center">
+      xmlns:fx="http://javafx.com/fxml" alignment="center" stylesheets="@mystyle.css">
     <VBox HBox.hgrow="ALWAYS">
         <HBox fx:id="authPanel">
             <TextField fx:id="loginField" promptText="Логин" HBox.hgrow="ALWAYS"/>
