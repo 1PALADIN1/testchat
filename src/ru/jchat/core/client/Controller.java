@@ -35,7 +35,7 @@ public class Controller implements Initializable {
     private DataOutputStream out;
     private DataInputStream in;
     private boolean authorized = false;
-    private ObservableList<String> clientList; //
+    private ObservableList<String> clientList; //обновляемый список
 
     final String SERVER_IP = "localhost";
     final int SERVER_PORT = 8189;
@@ -75,15 +75,23 @@ public class Controller implements Initializable {
                 try {
                     while (true) {
                         String s = in.readUTF();
-                        if (s.equals("/authok")) {
-                            setAuthorized(true);
-                            continue;
-                        }
                         //для служебных сообщений
                         if (s.startsWith("/")) {
-                            if (s.startsWith("/clientslist ")) {
-
+                            //авторизация
+                            if (s.equals("/authok")) {
+                                setAuthorized(true);
                             }
+                            //список пользователей в сети
+                            if (s.startsWith("/clientslist ")) {
+                                String data[] = s.split("\\s");
+                                Platform.runLater(() -> {
+                                    clientList.clear();
+                                    for (int i=1; i<data.length; i++) {
+                                        clientList.addAll(data[i]);
+                                    }
+                                });
+                            }
+                            continue;
                         }
                         textArea.appendText(s + "\n");
                     }
