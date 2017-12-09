@@ -11,7 +11,7 @@ public class ClientHandler {
     private DataInputStream in;
     private DataOutputStream out;
     private String nick;
-    private final int DICSONNECT_INTERVAL = 120000; //интервал отключения неавторизованных пользователей
+    private final int DISCONNECT_INTERVAL = 120000; //интервал отключения неавторизованных пользователей
     private boolean isAuth;
 
     public ClientHandler(Server srv, Socket sock) {
@@ -97,7 +97,7 @@ public class ClientHandler {
     private void checkAuth() {
         Thread thread = new Thread(() -> {
             try {
-                Thread.sleep(DICSONNECT_INTERVAL);
+                Thread.sleep(DISCONNECT_INTERVAL);
                 if (!isAuth && !socket.isClosed()) {
                     sendMsg("Соединение закрыто");
                     System.out.println("Пользователь " + socket.getInetAddress()
