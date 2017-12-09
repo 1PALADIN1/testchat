@@ -31,7 +31,7 @@ public class ClientHandler {
                                 if (newNick != null) {
                                     if (!server.isNickBusy(newNick)) {
                                         nick = newNick;
-                                        sendMsg("/authok");
+                                        sendMsg("/authok " + newNick);
                                         System.out.println("Клиент " + newNick + " авторизовался");
                                         server.subscribe(this);
                                     } else {

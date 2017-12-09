@@ -6,6 +6,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.util.Callback;
 
@@ -37,6 +38,7 @@ public class Controller implements Initializable {
     private DataInputStream in;
     private boolean authorized = false;
     private ObservableList<String> clientList; //обновляемый список
+    private String myNick;
 
     final String SERVER_IP = "localhost";
     final int SERVER_PORT = 8189;
@@ -57,6 +59,7 @@ public class Controller implements Initializable {
             clientsListView.setManaged(false);
             authPanel.setVisible(true);
             authPanel.setManaged(true);
+            myNick = "";
         }
     }
 
@@ -82,11 +85,12 @@ public class Controller implements Initializable {
                             super.updateItem(item, empty);
                             if (!empty) {
                                 setText(item);
-                                if (item.equals("nick1")) {
+                                if (item.equals(myNick)) {
                                     setStyle("-fx-font-weight: bold; -fx-background-color: cornflowerblue;");
-                                } else {
-                                    setGraphic(null);
                                 }
+                            } else {
+                                setGraphic(null);
+                                setText(null);
                             }
                         }
                     };
@@ -100,8 +104,9 @@ public class Controller implements Initializable {
                         //для служебных сообщений
                         if (s.startsWith("/")) {
                             //авторизация
-                            if (s.equals("/authok")) {
+                            if (s.startsWith("/authok ")) {
                                 setAuthorized(true);
+                                myNick = s.split("\\s")[1];
                             }
                             //список пользователей в сети
                             if (s.startsWith("/clientslist ")) {
@@ -177,5 +182,16 @@ public class Controller implements Initializable {
             alert.setContentText(msg);
             alert.showAndWait();
         });
+    }
+
+    //личные сообщения по нажатию на список
+    public void clientsListClicked(MouseEvent mouseEvent) {
+        if (mouseEvent.getClickCount() == 2) {
+            //период между двумя щелчками: системные настройки
+            //забираем выделенную ячейку
+            msgField.setText("/w " + clientsListView.getSelectionModel().getSelectedItem() + " ");
+            msgField.requestFocus();
+            msgField.selectEnd();
+        }
     }
 }

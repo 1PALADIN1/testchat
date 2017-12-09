@@ -67,8 +67,8 @@ public class Server {
                 from.sendMsg("Личное сообщение отправлено " + nickTo);
                 return;
             }
-            from.sendMsg(nickTo + " не найден");
         }
+        from.sendMsg(nickTo + " не найден");
     }
 
     //рассылка списка клиентов в чате
