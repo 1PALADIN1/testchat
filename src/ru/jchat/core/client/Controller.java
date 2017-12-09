@@ -7,6 +7,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import javafx.util.Callback;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -71,6 +72,27 @@ public class Controller implements Initializable {
             out = new DataOutputStream(socket.getOutputStream());
             clientList = FXCollections.observableArrayList();
             clientsListView.setItems(clientList);
+
+            clientsListView.setCellFactory(new Callback<ListView<String>, ListCell<String>>() {
+                @Override
+                public ListCell<String> call(ListView<String> param) {
+                    return new ListCell<String>() {
+                        @Override
+                        protected void updateItem(String item, boolean empty) {
+                            super.updateItem(item, empty);
+                            if (!empty) {
+                                setText(item);
+                                if (item.equals("nick1")) {
+                                    setStyle("-fx-font-weight: bold; -fx-background-color: cornflowerblue;");
+                                } else {
+                                    setGraphic(null);
+                                }
+                            }
+                        }
+                    };
+                }
+            });
+
             Thread t = new Thread(() -> {
                 try {
                     while (true) {
