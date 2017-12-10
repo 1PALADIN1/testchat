@@ -11,6 +11,8 @@ public class ClientHandler {
     private DataInputStream in;
     private DataOutputStream out;
     private String nick;
+    private final int DISCONNECT_INTERVAL = 120000; //интервал отключения неавторизованных пользователей
+    private boolean isAuth;
 
     public ClientHandler(Server srv, Socket sock) {
         try {
@@ -18,37 +20,53 @@ public class ClientHandler {
             this.socket = sock;
             this.in = new DataInputStream(socket.getInputStream());
             this.out = new DataOutputStream(socket.getOutputStream());
+            this.isAuth = false;
             new Thread(() -> {
                 try {
                     while (true) {
                         String msg = in.readUTF();
                         if (msg.startsWith("/auth ")) {
-                            String[] data = msg.split(" ");
+                            String[] data = msg.split("\\s");
+
+                            //запускаем таймер авторизации
+                            checkAuth();
 
                             //получаем логин и пароль из базы
-                            String newNick = server.getAuthService().getNickByLoginAndPass(data[1], data[2]);
-                            if (newNick != null) {
-                                if (!server.isNickBusy(newNick)) {
-                                    nick = newNick;
-                                    sendMsg("/authok");
-                                    System.out.println("Клиент " + newNick + " авторизовался");
-                                    server.subscribe(this);
+                            if (data.length == 3) {
+                                String newNick = server.getAuthService().getNickByLoginAndPass(data[1], data[2]);
+                                if (newNick != null) {
+                                    if (!server.isNickBusy(newNick)) {
+                                        nick = newNick;
+                                        isAuth = true;
+                                        sendMsg("/authok " + newNick);
+                                        System.out.println("Пользователь " + newNick + " авторизовался");
+                                        server.subscribe(this);
+                                    } else {
+                                        sendMsg("Учётная запись уже занята");
+                                    }
                                 } else {
-                                    sendMsg("Учётная запись уже занята");
+                                    sendMsg("Неверный логин и/или пароль");
                                 }
-                            }
-                            else {
-                                sendMsg("Неверный логин и/или пароль");
                             }
                             continue;
                         }
                         System.out.println(nick + ": " + msg);
-                        if (msg.equals("/end")) break;
-                        server.broadcastMsg(nick + ": " + msg);
-                        //sendMsg("echo: " + msg);
+                        //служебные команды
+                        if (msg.startsWith("/")) {
+                            if (msg.startsWith("/w ")) {
+                                String[] data = msg.split("\\s", 3);
+                                server.sendPrivateMsg(this, data[1], data[2]);
+                            }
+                            if (msg.equals("/end")) break;
+                        } else {
+                            server.broadcastMsg(nick + ": " + msg);
+                        }
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    //e.printStackTrace();
+                    if (nick != null) System.out.println("Пользователь " + nick + " покинул нас");
+                    else
+                        System.out.println("Соединение было разорвано по непонятным администратору причинам");
                 } finally {
                     nick = null;
                     server.unsubscribe(this);
@@ -74,5 +92,23 @@ public class ClientHandler {
 
     public String getNick() {
         return nick;
+    }
+
+    private void checkAuth() {
+        Thread thread = new Thread(() -> {
+            try {
+                Thread.sleep(DISCONNECT_INTERVAL);
+                if (!isAuth && !socket.isClosed()) {
+                    sendMsg("Соединение закрыто");
+                    System.out.println("Пользователь " + socket.getInetAddress()
+                            + ":" + socket.getPort() + "(" + socket.getLocalPort() + ") был отключен от сервера");
+                    socket.close();
+                }
+            } catch (InterruptedException | IOException e) {
+                e.printStackTrace();
+            }
+        });
+        thread.setDaemon(true);
+        thread.start();
     }
 }

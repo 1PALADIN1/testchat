@@ -1,13 +1,14 @@
 package ru.jchat.core.client;
 
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Alert;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
+import javafx.util.Callback;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -29,11 +30,15 @@ public class Controller implements Initializable {
     TextField loginField;
     @FXML
     PasswordField passField;
+    @FXML
+    ListView<String> clientsListView;
 
     private Socket socket;
     private DataOutputStream out;
     private DataInputStream in;
     private boolean authorized = false;
+    private ObservableList<String> clientList; //обновляемый список
+    private String myNick;
 
     final String SERVER_IP = "localhost";
     final int SERVER_PORT = 8189;
@@ -43,13 +48,18 @@ public class Controller implements Initializable {
         if (authorized) {
             msgPanel.setVisible(true);
             msgPanel.setManaged(true);
+            clientsListView.setVisible(true);
+            clientsListView.setManaged(true);
             authPanel.setVisible(false);
             authPanel.setManaged(false);
         } else {
             msgPanel.setVisible(false);
             msgPanel.setManaged(false);
+            clientsListView.setVisible(false);
+            clientsListView.setManaged(false);
             authPanel.setVisible(true);
             authPanel.setManaged(true);
+            myNick = "";
         }
     }
 
@@ -63,27 +73,63 @@ public class Controller implements Initializable {
             socket = new Socket(SERVER_IP, SERVER_PORT);
             in = new DataInputStream(socket.getInputStream());
             out = new DataOutputStream(socket.getOutputStream());
-            Thread t = new Thread(new Runnable() {
+            clientList = FXCollections.observableArrayList();
+            clientsListView.setItems(clientList);
+
+            clientsListView.setCellFactory(new Callback<ListView<String>, ListCell<String>>() {
                 @Override
-                public void run() {
-                    try {
-                        while (true) {
-                            String s = in.readUTF();
-                            if (s.equals("/authok")) {
-                                setAuthorized(true);
-                                continue;
+                public ListCell<String> call(ListView<String> param) {
+                    return new ListCell<String>() {
+                        @Override
+                        protected void updateItem(String item, boolean empty) {
+                            super.updateItem(item, empty);
+                            if (!empty) {
+                                setText(item);
+                                if (item.equals(myNick)) {
+                                    setStyle("-fx-font-weight: bold; -fx-background-color: cornflowerblue;");
+                                }
+                            } else {
+                                setGraphic(null);
+                                setText(null);
                             }
-                            textArea.appendText(s + "\n");
                         }
+                    };
+                }
+            });
+
+            Thread t = new Thread(() -> {
+                try {
+                    while (true) {
+                        String s = in.readUTF();
+                        //для служебных сообщений
+                        if (s.startsWith("/")) {
+                            //авторизация
+                            if (s.startsWith("/authok ")) {
+                                setAuthorized(true);
+                                myNick = s.split("\\s")[1];
+                            }
+                            //список пользователей в сети
+                            if (s.startsWith("/clientslist ")) {
+                                String data[] = s.split("\\s");
+                                Platform.runLater(() -> {
+                                    clientList.clear();
+                                    for (int i=1; i<data.length; i++) {
+                                        clientList.addAll(data[i]);
+                                    }
+                                });
+                            }
+                            continue;
+                        }
+                        textArea.appendText(s + "\n");
+                    }
+                } catch (IOException e) {
+                    showAlert("Сервер перестал отвечать");
+                } finally {
+                    setAuthorized(false);
+                    try {
+                        socket.close();
                     } catch (IOException e) {
-                        showAlert("Сервер перестал отвечать");
-                    } finally {
-                        setAuthorized(false);
-                        try {
-                            socket.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
+                        e.printStackTrace();
                     }
                 }
             });
@@ -108,6 +154,11 @@ public class Controller implements Initializable {
     }
 
     public void sendAuthMsg() {
+        if (loginField.getText().isEmpty() || passField.getText().isEmpty()) {
+            showAlert("Поля логин и пароль должны быть заполнены");
+            return;
+        }
+
         if (socket == null || socket.isClosed()) {
             connect();
         }
@@ -131,5 +182,16 @@ public class Controller implements Initializable {
             alert.setContentText(msg);
             alert.showAndWait();
         });
+    }
+
+    //личные сообщения по нажатию на список
+    public void clientsListClicked(MouseEvent mouseEvent) {
+        if (mouseEvent.getClickCount() == 2) {
+            //период между двумя щелчками: системные настройки
+            //забираем выделенную ячейку
+            msgField.setText("/w " + clientsListView.getSelectionModel().getSelectedItem() + " ");
+            msgField.requestFocus();
+            msgField.selectEnd();
+        }
     }
 }
